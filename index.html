@@ -308,7 +308,7 @@ function vWeek(){
 /* ---------- Scores ---------- */
 let scoreWeek=null;
 function vScores(){
-  const v=$("#view"); const wk=scoreWeek&&S.weeks[scoreWeek]?scoreWeek:lastScoredWeek(); const W=S.weeks[wk];
+  const v=$("#view"); const wk=scoreWeek&&S.weeks[scoreWeek]?scoreWeek:currentWeek(); const W=S.weeks[wk];
   const card=(G,i)=>{const awayFav=G.home!=="fav";const away={n:awayFav?G.fav:G.dog,s:awayFav?G.favScore:G.dogScore},home={n:awayFav?G.dog:G.fav,s:awayFav?G.dogScore:G.favScore};
     const sc=hasScore(G);const lead=sc?(+away.s>+home.s?"a":+home.s>+away.s?"h":""):"";
     let ats="",ou="";
