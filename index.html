@@ -188,7 +188,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const sp=v=>(v>0?"+":"")+v;
 /* ESPN's standard team abbreviations */
-const ABBR={"Arizona":"ARI","Atlanta":"ATL","Baltimore":"BAL","Buffalo":"BUF","Carolina":"CAR","Chicago":"CHI","Cincinnati":"CIN","Cleveland":"CLE","Dallas":"DAL","Denver":"DEN","Detroit":"DET","Green Bay":"GB","Houston":"HOU","Indianapolis":"IND","Jacksonville":"JAX","Kansas City":"KC","LA Chargers":"LAC","LA Rams":"LAR","Las Vegas":"LV","Miami":"MIA","Minnesota":"MIN","New England":"NE","New Orleans":"NO","NY Giants":"NYG","NY Jets":"NYJ","Philadelphia":"PHL","Pittsburgh":"PIT","San Francisco":"SF","Seattle":"SEA","Tampa Bay":"TB","Tennessee":"TEN","Washington":"WSH"};
+const ABBR={"Arizona":"ARI","Atlanta":"ATL","Baltimore":"BAL","Buffalo":"BUF","Carolina":"CAR","Chicago":"CHI","Cincinnati":"CIN","Cleveland":"CLE","Dallas":"DAL","Denver":"DEN","Detroit":"DET","Green Bay":"GB","Houston":"HOU","Indianapolis":"IND","Jacksonville":"JAX","Kansas City":"KC","LA Chargers":"LAC","LA Rams":"LAR","Las Vegas":"LV","Miami":"MIA","Minnesota":"MIN","New England":"NE","New Orleans":"NO","NY Giants":"NYG","NY Jets":"NYJ","Philadelphia":"PHL","Pittsburgh":"PIT","San Francisco":"SF","Seattle":"SEA","Tampa Bay":"TB","Tennessee":"TEN","Washington":"WAS"};
 const abbr=n=>ABBR[n]||String(n||"").replace(/[^A-Za-z]/g,"").slice(0,3).toUpperCase();
 const matchup=G=>{const away=G.home==="fav"?G.dog:G.fav,home=G.home==="fav"?G.fav:G.dog;return abbr(away)+" @ "+abbr(home);};
 function teamLine(G){const away=G.home==="fav"?G.dog:G.fav, home=G.home==="fav"?G.fav:G.dog;return esc(away)+" @ "+esc(home);}
