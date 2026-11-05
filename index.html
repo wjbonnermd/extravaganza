@@ -83,6 +83,16 @@ select.f,input.f{font:inherit;padding:7px 9px;border-radius:6px;border:1px solid
 .slip{position:sticky;bottom:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;box-shadow:0 -4px 18px rgba(0,0,0,.08);margin-bottom:env(safe-area-inset-bottom,0px)}
 .req{display:flex;gap:14px;flex-wrap:wrap;font-size:.9rem}
 .req span.ok{color:var(--win)}.req span.no{color:var(--loss)}
+/* score ticker */
+.ticker{background:var(--sunk);border-bottom:1px solid var(--line)}
+.tk{display:flex;gap:6px;overflow-x:auto;padding-block:6px;align-items:stretch;scrollbar-width:thin}
+.tkw{font:700 .74rem var(--f-data);letter-spacing:.1em;color:var(--muted);align-self:center;white-space:nowrap;padding-right:4px}
+.tkg{flex:0 0 auto;display:grid;grid-template-columns:auto;gap:1px;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:4px 9px;cursor:pointer;font:inherit;color:var(--ink);text-align:left;min-width:86px}
+.tkt{display:flex;justify-content:space-between;gap:10px;font:600 .86rem var(--f-data);color:var(--muted)}
+.tkt b{font-weight:700;letter-spacing:.03em}
+.tkt.win{color:var(--ink)}
+.tkst{font:600 .7rem var(--f-data);letter-spacing:.06em;color:var(--muted)}
+.tklive{font:700 .7rem var(--f-data);letter-spacing:.06em;color:var(--loss)}
 /* scoreboard */
 .sbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:10px}
 .sbcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:4px;min-width:0}
@@ -129,6 +139,7 @@ label.ck{display:inline-flex;gap:6px;align-items:center}
 </div></header>
 <div class="demo"><div class="wrap"><span class="chip gold">Demo</span><span>Weeks 1–8 are loaded from The MONSTER. Week 9 uses sample lines for testing. Changes save in this browser only.</span><span class="spacer"></span><button class="btn" id="reset" type="button">Reset demo</button></div></div>
 <nav class="tabs"><div class="wrap" role="tablist" id="tabs"></div></nav>
+<div class="ticker" id="ticker" aria-label="This week's NFL scores"></div>
 <main><div class="wrap" id="view"></div></main>
 <div class="toast" id="toast" hidden></div>
 <script>
@@ -222,7 +233,16 @@ $("#reset").onclick=()=>{const b=$("#reset");if(b.dataset.arm){S=fresh();save();
 const TABS=[["picks","My Picks"],["standings","Standings"],["week","Weekly"],["scores","Scores"],["flights","Flights"],["money","Money"],["admin","Admin"]];
 function renderTabs(){$("#tabs").innerHTML=TABS.filter(t=>t[0]!=="admin"||who===ADMIN).map(([k,l])=>'<button role="tab" aria-selected="'+(tab===k)+'" data-tab="'+k+'">'+l+'</button>').join("");}
 $("#tabs").onclick=e=>{const b=e.target.closest("button");if(!b)return;tab=b.dataset.tab;detail=null;render();};
-function render(){renderWho();renderTabs();({picks:vPicks,standings:vStandings,week:vWeek,scores:vScores,flights:vFlights,money:vMoney,admin:vAdmin})[tab]();}
+function renderTicker(){
+  const W=S.weeks[currentWeek()];const el=$("#ticker");
+  if(!W||!W.games.length){el.hidden=true;return;} el.hidden=false;
+  el.innerHTML='<div class="wrap tk"><span class="tkw">'+(W.week===12?"WK 12 · DOUBLE":"WEEK "+W.week)+'</span>'+W.games.map(G=>{const awayFav=G.home!=="fav";const a=awayFav?G.fav:G.dog,hm=awayFav?G.dog:G.fav,as=awayFav?G.favScore:G.dogScore,hs=awayFav?G.dogScore:G.favScore;const sc=hasScore(G);
+    const st=isLive(G)?'<span class="tklive">'+esc(G.clock||"LIVE")+'</span>':sc?'<span class="tkst">FINAL</span>':'<span class="tkst">'+abbr(G.fav)+' '+sp(G.spread)+'</span>';
+    const t=(n,s,win)=>'<span class="tkt'+(win?" win":"")+'"><b>'+abbr(n)+'</b>'+(sc?'<span class="num">'+s+'</span>':'')+'</span>';
+    return '<button type="button" class="tkg" data-go="scores">'+t(a,as,sc&&+as>+hs)+t(hm,hs,sc&&+hs>+as)+st+'</button>';}).join("")+'</div>';
+  el.onclick=e=>{if(e.target.closest(".tkg")){tab="scores";scoreWeek=W.week;render();}};
+}
+function render(){renderWho();renderTabs();renderTicker();({picks:vPicks,standings:vStandings,week:vWeek,scores:vScores,flights:vFlights,money:vMoney,admin:vAdmin})[tab]();}
 
 /* ---------- My Picks ---------- */
 let draft=null, draftKey="";
