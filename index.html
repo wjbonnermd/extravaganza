@@ -83,6 +83,19 @@ select.f,input.f{font:inherit;padding:7px 9px;border-radius:6px;border:1px solid
 .slip{position:sticky;bottom:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;box-shadow:0 -4px 18px rgba(0,0,0,.08);margin-bottom:env(safe-area-inset-bottom,0px)}
 .req{display:flex;gap:14px;flex-wrap:wrap;font-size:.9rem}
 .req span.ok{color:var(--win)}.req span.no{color:var(--loss)}
+/* scoreboard */
+.sbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:10px}
+.sbcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:4px;min-width:0}
+.sbcard.both{border-color:var(--post)}
+.sbtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.sbtop .n{font:700 .76rem var(--f-data);color:var(--muted);letter-spacing:.08em}
+.sbrow{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:baseline;color:var(--muted)}
+.sbrow.lead{color:var(--ink)}
+.sbrow .ab{font:700 1.05rem var(--f-data);letter-spacing:.03em}
+.sbrow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sbrow .pts{font:700 1.5rem var(--f-data);line-height:1.1}
+.sbline{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
+.sbres{font-size:.85rem}
 /* tables */
 .tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 table{border-collapse:collapse;width:100%;font-size:.92rem}
@@ -206,10 +219,10 @@ function renderWho(){
 }
 $("#who").onchange=e=>{who=e.target.value;try{localStorage.setItem(KEY+"-who",who)}catch(_){}if(tab==="admin"&&who!==ADMIN)tab="picks";render();};
 $("#reset").onclick=()=>{const b=$("#reset");if(b.dataset.arm){S=fresh();save();delete b.dataset.arm;b.textContent="Reset demo";render();toast("Demo reset to The MONSTER data");}else{b.dataset.arm=1;b.textContent="Tap again to reset";setTimeout(()=>{delete b.dataset.arm;b.textContent="Reset demo"},3000);}};
-const TABS=[["picks","My Picks"],["standings","Standings"],["week","Weekly"],["flights","Flights"],["money","Money"],["admin","Admin"]];
+const TABS=[["picks","My Picks"],["standings","Standings"],["week","Weekly"],["scores","Scores"],["flights","Flights"],["money","Money"],["admin","Admin"]];
 function renderTabs(){$("#tabs").innerHTML=TABS.filter(t=>t[0]!=="admin"||who===ADMIN).map(([k,l])=>'<button role="tab" aria-selected="'+(tab===k)+'" data-tab="'+k+'">'+l+'</button>').join("");}
 $("#tabs").onclick=e=>{const b=e.target.closest("button");if(!b)return;tab=b.dataset.tab;detail=null;render();};
-function render(){renderWho();renderTabs();({picks:vPicks,standings:vStandings,week:vWeek,flights:vFlights,money:vMoney,admin:vAdmin})[tab]();}
+function render(){renderWho();renderTabs();({picks:vPicks,standings:vStandings,week:vWeek,scores:vScores,flights:vFlights,money:vMoney,admin:vAdmin})[tab]();}
 
 /* ---------- My Picks ---------- */
 let draft=null, draftKey="";
@@ -290,6 +303,24 @@ function vWeek(){
       return '<td>'+ps.map(p=>{const g=grade(G,p);const short=p.t==="ats"?abbr(p.p==="fav"?G.fav:G.dog):(p.p==="over"?"OV":"UN");return '<span class="cell '+g+(isLive(G)?' lv':'')+'" title="'+esc(pickLabel(G,p))+'">'+short+(p.s>1?p.s+"★":"")+'</span>';}).join(" ")+'</td>';}).join("")+'</tr>').join("")+'</tbody></table></div>';
   }
   $("#ww").onchange=e=>{selWeek=+e.target.value;vWeek();};wireLive(vWeek);
+}
+
+/* ---------- Scores ---------- */
+let scoreWeek=null;
+function vScores(){
+  const v=$("#view"); const wk=scoreWeek&&S.weeks[scoreWeek]?scoreWeek:lastScoredWeek(); const W=S.weeks[wk];
+  const card=(G,i)=>{const awayFav=G.home!=="fav";const away={n:awayFav?G.fav:G.dog,s:awayFav?G.favScore:G.dogScore},home={n:awayFav?G.dog:G.fav,s:awayFav?G.dogScore:G.favScore};
+    const sc=hasScore(G);const lead=sc?(+away.s>+home.s?"a":+home.s>+away.s?"h":""):"";
+    let ats="",ou="";
+    if(sc){const d=+G.favScore + +G.spread - +G.dogScore;ats=d===0?"Push on the spread":(d>0?abbr(G.fav):abbr(G.dog))+(isLive(G)?" covering ":" covered ")+abbr(G.fav)+" "+sp(G.spread);
+      const t=+G.favScore + +G.dogScore;ou=t===+G.ou?"Push on "+G.ou:(t>+G.ou?"Over":"Under")+" "+G.ou+" · "+t+" pts";}
+    const status=isLive(G)?'<span class="chip live">Live '+esc(G.clock||"")+'</span>':sc?'<span class="chip final">Final</span>':'<span class="chip">Not started</span>';
+    const row=(t,k)=>'<div class="sbrow'+(lead===k?" lead":"")+'"><span class="ab">'+abbr(t.n)+'</span><span class="nm">'+esc(t.n)+'</span><span class="pts num">'+(sc?t.s:"")+'</span></div>';
+    return '<div class="sbcard'+(G.both?" both":"")+'"><div class="sbtop"><span class="n">GAME '+(i+1)+'</span>'+status+'</div>'+row(away,"a")+row(home,"h")+
+      '<div class="sbline num">'+abbr(G.fav)+' '+sp(G.spread)+' · O/U '+G.ou+(G.both?' · <b>Pick both</b>':'')+'</div>'+(sc?'<div class="sbres">'+esc(ats)+'<br>'+esc(ou)+'</div>':'')+'</div>';};
+  v.innerHTML='<div class="row"><div><h2>'+(wk===12?"Separation Week 12":"Week "+wk)+' scoreboard</h2><p class="sub">Scores against the pool\'s lines. In the live app these fill in from ESPN as games are played.</p></div><span class="spacer"></span><select class="f" id="scw" aria-label="Week">'+weeksList().map(x=>'<option value="'+x.week+'"'+(x.week===wk?" selected":"")+'>Week '+x.week+'</option>').join("")+'</select></div>'+
+    (W.games.length?'<div class="sbgrid">'+W.games.map(card).join("")+'</div>':'<div class="panel empty">No games entered for this week yet.</div>');
+  $("#scw").onchange=e=>{scoreWeek=+e.target.value;vScores();};
 }
 
 /* ---------- Flights ---------- */
