@@ -4,8 +4,8 @@ Web app for The Extravaganza NFL pick pool, replacing the emailed spreadsheet (T
 
 ## Current status: demo
 
-`index.html` is a self-contained demo loaded with weeks 1–8 of the 2026 season from The MONSTER.
-Week 9 uses sample lines. Changes save only in the viewer's own browser.
+`index.html` is a self-contained demo loaded with weeks 1–9 of the 2026 season from The MONSTER.
+Week 10 uses sample lines for testing picks. Changes save only in the viewer's own browser.
 
 ## Rules the app follows
 
